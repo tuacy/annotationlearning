@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">annotationlearning</string>
+    <string name="click">点击</string>
+    <string name="click_already">已经点击了</string>
 </resources>
