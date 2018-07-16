@@ -1,4 +1,4 @@
-package com.tuacy.annotationlearning.annotation.viewloaf;
+package com.tuacy.annotationlearning.annotation.butterknife;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

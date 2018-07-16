@@ -1,4 +1,4 @@
-package com.tuacy.annotationlearning.annotation.viewloaf;
+package com.tuacy.annotationlearning.annotation.butterknife;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -8,11 +8,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-public class ViewLoaf {
-
-	private ViewLoaf() {
-
-	}
+public class ButterKnifeProcess {
 
 	/**
 	 * 绑定Activity

@@ -1,4 +1,4 @@
-package com.tuacy.annotationlearning.annotation.viewloaf;
+package com.tuacy.annotationlearning.annotation.butterknife;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,7 +7,8 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface BindView {
+public @interface BindString {
 
 	int value();
+
 }

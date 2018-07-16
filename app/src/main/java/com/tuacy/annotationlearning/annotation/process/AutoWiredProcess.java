@@ -1,22 +1,17 @@
 package com.tuacy.annotationlearning.annotation.process;
 
-import com.tuacy.annotationlearning.annotation.AutoCreate;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
-public class AutoCreateProcess {
+public class AutoWiredProcess {
 
-	private AutoCreateProcess() {
-	}
-
-	public static void autoCreateInit(final Object object) {
+	public static void bind(final Object object) {
 		Class parentClass = object.getClass();
 		Field[] fields = parentClass.getFields();
 		for (final Field field : fields) {
-			AutoCreate autoCreateAnnotation = field.getAnnotation(AutoCreate.class);
-			if (autoCreateAnnotation != null) {
+			AutoWired autoWiredAnnotation = field.getAnnotation(AutoWired.class);
+			if (autoWiredAnnotation != null) {
 				field.setAccessible(true);
 				try {
 					Class autoCreateClass = Class.forName(field.getType().getName());

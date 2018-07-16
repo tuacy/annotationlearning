@@ -5,12 +5,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.TextView;
 
-import com.tuacy.annotationlearning.annotation.AutoCreate;
-import com.tuacy.annotationlearning.annotation.process.AutoCreateProcess;
-import com.tuacy.annotationlearning.annotation.viewloaf.BindString;
-import com.tuacy.annotationlearning.annotation.viewloaf.BindView;
-import com.tuacy.annotationlearning.annotation.viewloaf.OnClick;
-import com.tuacy.annotationlearning.annotation.viewloaf.ViewLoaf;
+import com.tuacy.annotationlearning.annotation.process.AutoWired;
+import com.tuacy.annotationlearning.annotation.process.AutoWiredProcess;
+import com.tuacy.annotationlearning.annotation.butterknife.BindString;
+import com.tuacy.annotationlearning.annotation.butterknife.BindView;
+import com.tuacy.annotationlearning.annotation.butterknife.OnClick;
+import com.tuacy.annotationlearning.annotation.butterknife.ButterKnifeProcess;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,15 +23,15 @@ public class MainActivity extends AppCompatActivity {
 	String mInfo;
 
 	//自动创建对象
-	@AutoCreate
+	@AutoWired
 	UserInfo mUserInfo;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		ViewLoaf.bind(this);
-		AutoCreateProcess.autoCreateInit(this);
+		ButterKnifeProcess.bind(this);
+		AutoWiredProcess.bind(this);
 		initData();
 	}
 
@@ -42,6 +42,6 @@ public class MainActivity extends AppCompatActivity {
 
 	private void initData() {
 		// 我们是没有显示的去new对象的，通过@AutoCreate注解来完成new
-		mUserInfo.setName("AutoCreate");
+		mUserInfo.setName("AutoWired");
 	}
 }
