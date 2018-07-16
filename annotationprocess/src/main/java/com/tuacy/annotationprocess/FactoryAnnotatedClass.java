@@ -1,13 +1,10 @@
 package com.tuacy.annotationprocess;
 
-import com.sun.xml.internal.ws.util.StringUtils;
-
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.MirroredTypeException;
 
 public class FactoryAnnotatedClass {
-
 
 	private TypeElement annotatedClassElement;
 	private String      qualifiedSuperClassName;
