@@ -27,6 +27,9 @@ public class FactoryGroupedClasses {
 	 */
 	private static final String SUFFIX = "Factory";
 
+	/**
+	 * 父类的完整路径
+	 */
 	private String                             mQualifiedClassName;
 	/**
 	 * 同一个工程里面所有
