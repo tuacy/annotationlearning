@@ -1,4 +1,4 @@
-package com.tuacy.annotationlearning.annotation.process;
+package com.tuacy.annotationlearning.annotation.autowired;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

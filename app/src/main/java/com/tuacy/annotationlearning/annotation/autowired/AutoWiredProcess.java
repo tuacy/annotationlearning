@@ -1,4 +1,4 @@
-package com.tuacy.annotationlearning.annotation.process;
+package com.tuacy.annotationlearning.annotation.autowired;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -14,12 +14,9 @@ public class AutoWiredProcess {
 			if (autoWiredAnnotation != null) {
 				field.setAccessible(true);
 				try {
-					Class autoCreateClass = Class.forName(field.getType().getName());
+					Class<?> autoCreateClass = field.getType();
 					Constructor autoCreateConstructor = autoCreateClass.getConstructor();
-					Object autoCrateObject = autoCreateConstructor.newInstance();
-					field.set(object, autoCrateObject);
-				} catch (ClassNotFoundException e) {
-					e.printStackTrace();
+					field.set(object, autoCreateConstructor.newInstance());
 				} catch (NoSuchMethodException e) {
 					e.printStackTrace();
 				} catch (InstantiationException e) {

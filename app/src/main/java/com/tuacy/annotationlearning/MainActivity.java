@@ -5,8 +5,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.TextView;
 
-import com.tuacy.annotationlearning.annotation.process.AutoWired;
-import com.tuacy.annotationlearning.annotation.process.AutoWiredProcess;
+import com.tuacy.annotationlearning.annotation.autowired.AutoWired;
+import com.tuacy.annotationlearning.annotation.autowired.AutoWiredProcess;
 import com.tuacy.annotationlearning.annotation.butterknife.BindString;
 import com.tuacy.annotationlearning.annotation.butterknife.BindView;
 import com.tuacy.annotationlearning.annotation.butterknife.OnClick;

@@ -30,11 +30,11 @@ import javax.tools.Diagnostic;
 @AutoService(Processor.class)
 public class FactoryProcessor extends AbstractProcessor {
 
-	private Types    mTypeUtils;
-	private Filer    mFiler;
-	private Messager mMessager;
-	private Elements mElementUtils;
-	private Map<String, FactoryGroupedClasses> factoryClasses = new LinkedHashMap<String, FactoryGroupedClasses>();
+	private Types                              mTypeUtils;
+	private Filer                              mFiler;
+	private Messager                           mMessager;
+	private Elements                           mElementUtils;
+	private Map<String, FactoryGroupedClasses> mFactoryGroupedClasses;
 
 	@Override
 	public synchronized void init(ProcessingEnvironment processingEnvironment) {
@@ -43,6 +43,7 @@ public class FactoryProcessor extends AbstractProcessor {
 		mFiler = processingEnvironment.getFiler();
 		mMessager = processingEnvironment.getMessager();
 		mElementUtils = processingEnvironment.getElementUtils();
+		mFactoryGroupedClasses = new LinkedHashMap<>();
 	}
 
 	/**
@@ -62,14 +63,14 @@ public class FactoryProcessor extends AbstractProcessor {
 
 	@Override
 	public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
-		// 遍历所有被注解了@Factory的元素
+		// 遍历所有被注解了@Factory的元素(可能是类，可能是接口，可能是变量，可能是方法)
 		for (Element annotatedElement : roundEnvironment.getElementsAnnotatedWith(Factory.class)) {
-			// 检查被注解为@Factory的元素是否是一个类
+			// @Factory只能添加在类上面
 			if (annotatedElement.getKind() != ElementKind.CLASS) {
 				error(annotatedElement, "Only classes can be annotated with @%s", Factory.class.getSimpleName());
 				return true;
 			}
-			// 因为我们已经知道它是ElementKind.CLASS类型，所以可以直接强制转换
+			// 因为我们已经知道它是ElementKind.CLASS类型，所以可以直接强制转换，转换成TypeElement类型
 			TypeElement typeElement = (TypeElement) annotatedElement;
 
 			try {
@@ -78,11 +79,12 @@ public class FactoryProcessor extends AbstractProcessor {
 					return true; // 已经打印了错误信息，退出处理过程
 				}
 				// 所有检查都没有问题，所以可以添加了
-				FactoryGroupedClasses factoryClass = factoryClasses.get(annotatedClass.getQualifiedFactoryGroupName());
+				FactoryGroupedClasses factoryClass = mFactoryGroupedClasses.get(annotatedClass.getQualifiedFactoryGroupName());
 				if (factoryClass == null) {
+					// 之前没有添加过
 					String qualifiedGroupName = annotatedClass.getQualifiedFactoryGroupName();
 					factoryClass = new FactoryGroupedClasses(qualifiedGroupName);
-					factoryClasses.put(qualifiedGroupName, factoryClass);
+					mFactoryGroupedClasses.put(qualifiedGroupName, factoryClass);
 				}
 				// 如果和其他的@Factory标注的类的id相同冲突，
 				// 抛出IdAlreadyUsedException异常
@@ -95,11 +97,11 @@ public class FactoryProcessor extends AbstractProcessor {
 		}
 		// 生成代码
 		try {
-			for (FactoryGroupedClasses factoryClass : factoryClasses.values()) {
+			for (FactoryGroupedClasses factoryClass : mFactoryGroupedClasses.values()) {
 				factoryClass.generateCode(mElementUtils, mFiler);
 			}
 			// 清除factoryClasses
-			factoryClasses.clear();
+			mFactoryGroupedClasses.clear();
 		} catch (IOException e) {
 			error(null, e.getMessage());
 		}
@@ -113,37 +115,39 @@ public class FactoryProcessor extends AbstractProcessor {
 	}
 
 	private boolean isValidClass(FactoryAnnotatedClass item) {
-		// 转换为TypeElement, 含有更多特定的方法
+		// 转换为TypeElement, 含有更多特定的方法, TypeElement是一个类或者接口，有Factory注解对应的类
 		TypeElement classElement = item.getTypeElement();
 
+		// 类必须是public
 		if (!classElement.getModifiers().contains(Modifier.PUBLIC)) {
 			error(classElement, "The class %s is not public.", classElement.getQualifiedName().toString());
 			return false;
 		}
 
-		// 检查是否是一个抽象类
+		// 类不能是抽象类
 		if (classElement.getModifiers().contains(Modifier.ABSTRACT)) {
 			error(classElement, "The class %s is abstract. You can't annotate abstract classes with @%",
 				  classElement.getQualifiedName().toString(), Factory.class.getSimpleName());
 			return false;
 		}
-		// 检查继承关系: 必须是@Factory.type()指定的类型子类
+		// 检查继承关系: 必须继承@Factory.type()指定的类型子类
+		// 获取到Factory type参数对应的类
 		TypeElement superClassElement = mElementUtils.getTypeElement(item.getQualifiedFactoryGroupName());
 		if (superClassElement.getKind() == ElementKind.INTERFACE) {
-			// 检查接口是否实现了
+			// 如果Factory type参数是接口，检查我们的注解的类是否实现了该接口
 			if (!classElement.getInterfaces().contains(superClassElement.asType())) {
 				error(classElement, "The class %s annotated with @%s must implement the interface %s",
 					  classElement.getQualifiedName().toString(), Factory.class.getSimpleName(), item.getQualifiedFactoryGroupName());
 				return false;
 			}
 		} else {
-			// 检查子类
+			// 如果Factory type参数是类，检查我们的注解的类是否继承该类，考虑多重继承的情况
 			TypeElement currentClass = classElement;
 			while (true) {
 				TypeMirror superClassType = currentClass.getSuperclass();
 
 				if (superClassType.getKind() == TypeKind.NONE) {
-					// 到达了基本类型(java.lang.Object), 所以退出
+					// 到达了基本类型(java.lang.Object), 所以退出, 没有继承了
 					error(classElement, "The class %s annotated with @%s must inherit from %s", classElement.getQualifiedName().toString(),
 						  Factory.class.getSimpleName(), item.getQualifiedFactoryGroupName());
 					return false;
@@ -159,7 +163,7 @@ public class FactoryProcessor extends AbstractProcessor {
 			}
 		}
 
-		// 检查是否提供了默认公开构造函数
+		// 检查是否提供了默认公开构造函数  getEnclosedElements用于获取classElement里面包含的所有元素包括，变量，方法，构造函数等
 		for (Element enclosed : classElement.getEnclosedElements()) {
 			if (enclosed.getKind() == ElementKind.CONSTRUCTOR) {
 				ExecutableElement constructorElement = (ExecutableElement) enclosed;
