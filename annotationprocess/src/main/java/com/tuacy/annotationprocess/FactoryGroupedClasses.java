@@ -15,6 +15,11 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.tools.JavaFileObject;
 
+/**
+ * 因为我们项目是很大的，可能多个地方用到工厂模式(多个工厂)。
+ * People -> (Male、Female)   对应一个FactoryGroupedClasses mItemsMap变量里面有两个元素Male和Female
+ * Shape -> (Triangle、Rectangle)  对应一个FactoryGroupedClasses mItemsMap变量里面有两个元素Triangle和Rectangle
+ */
 public class FactoryGroupedClasses {
 
 	/**
@@ -22,29 +27,36 @@ public class FactoryGroupedClasses {
 	 */
 	private static final String SUFFIX = "Factory";
 
-	private String qualifiedClassName;
-
-	private Map<String, FactoryAnnotatedClass> itemsMap = new LinkedHashMap<>();
+	private String                             mQualifiedClassName;
+	/**
+	 * 同一个工程里面所有
+	 */
+	private Map<String, FactoryAnnotatedClass> mItemsMap;
 
 	public FactoryGroupedClasses(String qualifiedClassName) {
-		this.qualifiedClassName = qualifiedClassName;
+		mQualifiedClassName = qualifiedClassName;
+		mItemsMap = new LinkedHashMap<>();
 	}
 
-	public void add(FactoryAnnotatedClass toInsert) throws IllegalArgumentException {
-
-		FactoryAnnotatedClass existing = itemsMap.get(toInsert.getId());
+	/**
+	 * 添加元素，要判断Factory注解的id，是否重复
+	 */
+	public void add(FactoryAnnotatedClass factoryAnnotate) throws IllegalArgumentException {
+		FactoryAnnotatedClass existing = mItemsMap.get(factoryAnnotate.getId());
 		if (existing != null) {
-			throw new IllegalArgumentException(toInsert.getId() + " existing");
+			throw new IllegalArgumentException(factoryAnnotate.getId() + " existing");
 		}
-
-		itemsMap.put(toInsert.getId(), toInsert);
+		mItemsMap.put(factoryAnnotate.getId(), factoryAnnotate);
 	}
 
+	/**
+	 * 生成java源文件代码
+	 */
 	public void generateCode(Elements elementUtils, Filer filer) throws IOException {
-		TypeElement superClassName = elementUtils.getTypeElement(qualifiedClassName);
+		TypeElement superClassName = elementUtils.getTypeElement(mQualifiedClassName);
 		String factoryClassName = superClassName.getSimpleName() + SUFFIX;
 
-		JavaFileObject jfo = filer.createSourceFile(qualifiedClassName + SUFFIX);
+		JavaFileObject jfo = filer.createSourceFile(mQualifiedClassName + SUFFIX);
 		Writer writer = jfo.openWriter();
 		JavaWriter jw = new JavaWriter(writer);
 
@@ -59,13 +71,13 @@ public class FactoryGroupedClasses {
 
 		jw.beginType(factoryClassName, "class", EnumSet.of(Modifier.PUBLIC));
 		jw.emitEmptyLine();
-		jw.beginMethod(qualifiedClassName, "create", EnumSet.of(Modifier.PUBLIC), "String", "id");
+		jw.beginMethod(mQualifiedClassName, "create", EnumSet.of(Modifier.PUBLIC), "String", "id");
 
 		jw.beginControlFlow("if (id == null)");
 		jw.emitStatement("throw new IllegalArgumentException(\"id is null!\")");
 		jw.endControlFlow();
 
-		for (FactoryAnnotatedClass item : itemsMap.values()) {
+		for (FactoryAnnotatedClass item : mItemsMap.values()) {
 			jw.beginControlFlow("if (\"%s\".equals(id))", item.getId());
 			jw.emitStatement("return new %s()", item.getTypeElement().getQualifiedName().toString());
 			jw.endControlFlow();
