@@ -1,5 +1,6 @@
 package com.tuacy.annotationprocess;
 
+
 import com.squareup.javawriter.JavaWriter;
 
 import java.io.IOException;
@@ -42,7 +43,7 @@ public class FactoryGroupedClasses {
 	}
 
 	/**
-	 * 添加元素，要判断Factory注解的id，是否重复
+	 * 添加元素，要判断Factory注解的id，是否重复（同一个工厂的元素都会添加到里面来）
 	 */
 	public void add(FactoryAnnotatedClass factoryAnnotate) throws IllegalArgumentException {
 		FactoryAnnotatedClass existing = mItemsMap.get(factoryAnnotate.getId());

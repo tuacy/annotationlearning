@@ -2,9 +2,12 @@ package com.tuacy.annotationlearning;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import com.tuacy.annotationlearning.annotation.abstractprocessor.People;
+import com.tuacy.annotationlearning.annotation.abstractprocessor.PeopleFactory;
 import com.tuacy.annotationlearning.annotation.autowired.AutoWired;
 import com.tuacy.annotationlearning.annotation.autowired.AutoWiredProcess;
 import com.tuacy.annotationlearning.annotation.butterknife.BindString;
@@ -22,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
 	@BindString(R.string.click_already)
 	String mInfo;
 
-	//自动创建对象
+	//自动创建对象，不用我们去new UserInfo()了
 	@AutoWired
 	UserInfo mUserInfo;
 
@@ -35,6 +38,9 @@ public class MainActivity extends AppCompatActivity {
 		initData();
 	}
 
+	/**
+	 * 绑定点击事件
+	 */
 	@OnClick({R.id.button_click})
 	public void buttonOnCLick(View view) {
 		mTextView.setText(mInfo);
@@ -43,5 +49,10 @@ public class MainActivity extends AppCompatActivity {
 	private void initData() {
 		// 我们是没有显示的去new对象的，通过@AutoCreate注解来完成new
 		mUserInfo.setName("AutoWired");
+
+		// 测试下工厂类代码自动生成是否成功
+		PeopleFactory peopleFactory = new PeopleFactory();
+		People people = peopleFactory.create("Female");
+		Log.d("tuacy", people.getName());
 	}
 }
